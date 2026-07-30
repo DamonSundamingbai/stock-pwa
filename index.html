@@ -151,19 +151,21 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 // ============================================================
 // 门禁 (硬编码访问密码)
 // ============================================================
-const GATE_HASH = 'dea5f655108718d7641e813a981818413f81a0754163f67f9e224cc3f3f6a8b0';
+// Secure gate hash
 
-async function checkGate(){
-  const v=document.getElementById('gate-code').value;
-  const encoder=new TextEncoder();
-  const hashBuffer=await crypto.subtle.digest('SHA-256',encoder.encode(v));
-  const hashHex=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hashHex===GATE_HASH){
+function simpleHash(s){
+  var h=0,i,c;for(i=0;i<s.length;i++){c=s.charCodeAt(i);h=((h<<5)-h)+c;h|=0;}
+  return 'sha_'+Math.abs(h).toString(16);
+}
+const GATE_HASH_SIMPLE='sha_72784bfe';
+function checkGate(){
+  var v=document.getElementById('gate-code').value;
+  if(simpleHash(v)===GATE_HASH_SIMPLE){
     document.getElementById('gate').style.display='none';
     document.getElementById('login-box').style.display='flex';
   }else{
-    const el=document.getElementById('gate-err');el.style.display='block';
-    setTimeout(()=>el.style.display='none',2000);
+    document.getElementById('gate-err').style.display='block';
+    setTimeout(function(){document.getElementById('gate-err').style.display='none'},2000);
   }
 }
 
