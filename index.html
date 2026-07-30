@@ -151,11 +151,14 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 // ============================================================
 // 门禁 (硬编码访问密码)
 // ============================================================
-const GATE_PASSWORD = '20260121';
+const GATE_HASH = 'dea5f655108718d7641e813a981818413f81a0754163f67f9e224cc3f3f6a8b0';
 
-function checkGate(){
+async function checkGate(){
   const v=document.getElementById('gate-code').value;
-  if(v===GATE_PASSWORD){
+  const encoder=new TextEncoder();
+  const hashBuffer=await crypto.subtle.digest('SHA-256',encoder.encode(v));
+  const hashHex=Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hashHex===GATE_HASH){
     document.getElementById('gate').style.display='none';
     document.getElementById('login-box').style.display='flex';
   }else{
