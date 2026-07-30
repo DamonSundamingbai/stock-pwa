@@ -97,7 +97,7 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 
 <!-- 门禁由 nginx basic auth 处理 -->
 <!-- ====== 账密登录 ====== -->
-<div id="login-box" class="gate" style="display:flex">
+<div id="login-box" class="gate" style="display:none">
   <div class="login-box">
     <h1>💰</h1>
     <p>大明白发发发</p>
@@ -141,7 +141,20 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 // ============================================================
 // 门禁 (硬编码访问密码)
 // ============================================================
-// Gate handled by nginx basic auth
+function simpleHash(s){
+  var h=0,i,c;for(i=0;i<s.length;i++){c=s.charCodeAt(i);h=((h<<5)-h)+c;h|=0;}
+  return 'sha_'+Math.abs(h).toString(16);
+}
+function checkGate(){
+  var v=document.getElementById('gate-code').value;
+  if(simpleHash(v)==='sha_72784bfe'){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('login-box').style.display='flex';
+  }else{
+    document.getElementById('gate-err').style.display='block';
+    setTimeout(function(){document.getElementById('gate-err').style.display='none'},2000);
+  }
+}
 
 // ============================================================
 // 数据存储
