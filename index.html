@@ -14,13 +14,20 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:100vh}
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.gate{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.gate-box{background:#1C1C1E;border-radius:16px;padding:32px 24px;width:300px;text-align:center}
+.gate-box h1{font-size:24px;font-weight:700;margin-bottom:8px;color:#FF9F0A}
+.gate-box p{font-size:12px;color:#8E8E93;margin-bottom:16px;line-height:1.5}
+.gate-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #3A3A3C;background:#2C2C2E;color:#fff;font-size:14px;text-align:center;outline:none;margin-bottom:10px;-webkit-appearance:none}
+.gate-box input:focus{border-color:#FF9F0A}
+.btn{width:100%;padding:10px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:6px}
+.btn-primary{background:#FF9F0A;color:#000}
+#login-box{display:none}
 .login-box{background:#1C1C1E;border-radius:16px;padding:32px 24px;width:300px;text-align:center}
 .login-box h1{font-size:40px;margin-bottom:4px}.login-box p{font-size:12px;color:#8E8E93;margin-bottom:16px}
 .login-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #3A3A3C;background:#2C2C2E;color:#fff;font-size:14px;text-align:center;outline:none;margin-bottom:10px;-webkit-appearance:none}
 .login-box input:focus{border-color:#FF9F0A}
-.btn{width:100%;padding:10px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:6px}
-.btn-primary{background:#FF9F0A;color:#000}.btn-secondary{background:#2C2C2E;color:#FF9F0A}
+.btn-secondary{background:#2C2C2E;color:#FF9F0A}
 #app{display:none;max-width:600px;margin:0 auto;padding:10px 12px}
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 0;margin-bottom:8px}
 .topbar h1{font-size:18px;color:#FF9F0A}.topbar button{background:none;border:1px solid #3A3A3C;color:#8E8E93;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer}
@@ -83,22 +90,36 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 .add-stock input{flex:1;padding:8px;border-radius:8px;border:1px solid #3A3A3C;background:#2C2C2E;color:#fff;font-size:13px;outline:none}.add-stock button{padding:8px 14px;border-radius:8px;background:#FF9F0A;color:#000;border:none;font-weight:600;cursor:pointer}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#FF9F0A;color:#000;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:999;display:none}
 .loading{text-align:center;color:#8E8E93;padding:40px;font-size:13px}
-.error-msg{color:#FF453A;font-size:11px;margin-top:4px;display:none}
+.err{color:#FF453A;font-size:11px;margin-top:4px;display:none}
 </style>
 </head>
 <body>
-<div id="login">
+
+<!-- ====== 门禁 ====== -->
+<div id="gate" class="gate">
+  <div class="gate-box">
+    <h1>🔐</h1>
+    <p>大明白股票分析 · 内部系统</p>
+    <input type="password" id="gate-code" placeholder="请输入访问密码" autocomplete="off" onkeydown="if(event.key==='Enter')checkGate()">
+    <div class="err" id="gate-err">密码错误</div>
+    <button class="btn btn-primary" onclick="checkGate()">进入</button>
+  </div>
+</div>
+
+<!-- ====== 账密登录 ====== -->
+<div id="login-box" class="gate" style="display:none">
   <div class="login-box">
     <h1>💰</h1>
     <p>大明白发发发</p>
     <input id="login-user" type="text" placeholder="账号" autocomplete="off">
     <input id="login-pwd" type="password" placeholder="密码" autocomplete="off">
-    <div class="error-msg" id="login-err">密码至少4位</div>
+    <div class="err" id="login-err">账号或密码错误</div>
     <button class="btn btn-primary" onclick="doLogin()">登录</button>
     <button class="btn btn-secondary" onclick="doCreate()">创建账号</button>
   </div>
 </div>
 
+<!-- ====== 主界面 ====== -->
 <div id="app">
   <div class="topbar">
     <h1>💰 大明白发发发</h1>
@@ -128,15 +149,28 @@ body{font-family:-apple-system,sans-serif;background:#000;color:#fff;min-height:
 
 <script>
 // ============================================================
-// 数据存储 (localStorage)
+// 门禁 (硬编码访问密码)
 // ============================================================
-const LS = {
-  get(k){ try{return JSON.parse(localStorage.getItem(k))}catch(e){return null} },
-  set(k,v){ localStorage.setItem(k,JSON.stringify(v)) },
-};
-const ACCOUNTS = ()=>LS.get('dm_accounts')||{};
-const saveAccounts = a=>LS.set('dm_accounts',a);
-const HOLDINGS = ()=>{
+const GATE_PASSWORD = 'dm888666';
+
+function checkGate(){
+  const v=document.getElementById('gate-code').value;
+  if(v===GATE_PASSWORD){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('login-box').style.display='flex';
+  }else{
+    const el=document.getElementById('gate-err');el.style.display='block';
+    setTimeout(()=>el.style.display='none',2000);
+  }
+}
+
+// ============================================================
+// 数据存储
+// ============================================================
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
+const ACCOUNTS=()=>LS.get('dm_accounts')||{};
+const saveAccounts=a=>LS.set('dm_accounts',a);
+const HOLDINGS=()=>{
   const a=LS.get('dm_holdings');
   return a||[
     {code:'000683',pfx:'0',name:'博源化工',cost:6.312,shares:23400},
@@ -146,158 +180,73 @@ const HOLDINGS = ()=>{
     {code:'603739',pfx:'1',name:'蔚蓝生物',cost:11.549,shares:2400},
   ];
 };
-const saveHoldings = h=>LS.set('dm_holdings',h);
-let currentCat = 'A股';
-let currentUser = '';
-let pricesCache = {};
-let klinesCache = {};
+const saveHoldings=h=>LS.set('dm_holdings',h);
+let currentCat='A股',currentUser='',pricesCache={};
 
 // ============================================================
 // 认证
 // ============================================================
-function hash(pwd){
-  let h=0;
-  for(let i=0;i<pwd.length;i++){h=((h<<5)-h)+pwd.charCodeAt(i);h|=0;}
-  return 'dm_'+Math.abs(h).toString(36);
-}
+function hash(pwd){let h=0;for(let i=0;i<pwd.length;i++){h=((h<<5)-h)+pwd.charCodeAt(i);h|=0;}return 'dm_'+Math.abs(h).toString(36);}
 function doLogin(){
-  const u=document.getElementById('login-user').value.trim();
-  const p=document.getElementById('login-pwd').value;
+  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pwd').value;
   if(!u||!p) return showErr('请输入账号密码');
   const accts=ACCOUNTS();
   if(!accts[u]||accts[u].pwd!==hash(p)) return showErr('账号或密码错误');
-  currentUser=u;
-  document.getElementById('login').style.display='none';
+  currentUser=u;localStorage.setItem('dm_last_user',u);
+  document.getElementById('login-box').style.display='none';
   document.getElementById('app').style.display='block';
   loadApp();
 }
 function doCreate(){
-  const u=document.getElementById('login-user').value.trim();
-  const p=document.getElementById('login-pwd').value;
+  const u=document.getElementById('login-user').value.trim(),p=document.getElementById('login-pwd').value;
   if(!u||!p) return showErr('请输入账号密码');
   if(p.length<4) return showErr('密码至少4位');
   const accts=ACCOUNTS();
   if(accts[u]) return showErr('账号已存在');
-  accts[u]={pwd:hash(p)};
-  saveAccounts(accts);
-  currentUser=u;
-  document.getElementById('login').style.display='none';
+  accts[u]={pwd:hash(p)};saveAccounts(accts);
+  currentUser=u;localStorage.setItem('dm_last_user',u);
+  document.getElementById('login-box').style.display='none';
   document.getElementById('app').style.display='block';
   loadApp();
 }
 function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('detail').style.display='none';
-  document.getElementById('login').style.display='flex';
-  document.getElementById('login-user').value='';
-  document.getElementById('login-pwd').value='';
+  document.getElementById('login-box').style.display='flex';
+  document.getElementById('login-user').value='';document.getElementById('login-pwd').value='';
   currentUser='';
 }
-function showErr(msg){
-  const el=document.getElementById('login-err');
-  el.textContent=msg;el.style.display='block';
-  setTimeout(()=>el.style.display='none',2000);
-}
+function showErr(msg){const el=document.getElementById('login-err');el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',2000);}
 
 // ============================================================
-// 行情 API
+// API
 // ============================================================
 async function fetchQuotes(codes){
-  const tags=codes.map(c=>{
-    const pfx=c.pfx||'0';
-    if(pfx==='1') return 'sh'+c.code;
-    if(pfx==='0') return 'sz'+c.code;
-    return 'hk'+c.code;
-  });
-  const url='https://qt.gtimg.cn/q='+tags.join(',');
-  const r=await fetch(url);const t=await r.text();
-  const re=/="(.+?)"/g;let m;const result={};
+  const tags=codes.map(c=>(c.pfx==='1'?'sh':'sz')+c.code);
+  const r=await fetch('https://qt.gtimg.cn/q='+tags.join(','));
+  const t=await r.text();const re=/="(.+?)"/g;let m;const result={};
   while((m=re.exec(t))!==null){
     const parts=m[1].split('~');
     if(parts.length<44) continue;
-    const code=parts[2];
-    result[code]={
-      code,name:parts[1],price:parseFloat(parts[3]||0),
-      pre_close:parseFloat(parts[4]||0),open:parseFloat(parts[5]||0),
-      high:parseFloat(parts[33]||0),low:parseFloat(parts[34]||0),
-      pct_chg:parseFloat(parts[32]||0),volume:parseFloat(parts[6]||0),
-      outer_ratio:(parseFloat(parts[7]||0)/(parseFloat(parts[7]||0)+parseFloat(parts[8]||0))*100)||50,
-      amount_wan:parseFloat(parts[37]||0),turnover:parseFloat(parts[38]||0),
-      vol_ratio:parseFloat(parts[43]||0),
-    };
+    result[parts[2]]={code:parts[2],name:parts[1],price:parseFloat(parts[3]||0),pre_close:parseFloat(parts[4]||0),pct_chg:parseFloat(parts[32]||0),outer_ratio:(parseFloat(parts[7]||0)/(parseFloat(parts[7]||0)+parseFloat(parts[8]||0))*100)||50,vol_ratio:parseFloat(parts[43]||0),turnover:parseFloat(parts[38]||0)};
   }
   return result;
 }
 async function fetchKlines(code,pfx,days=60){
-  const tag=(pfx==='1'?'sh':pfx==='0'?'sz':'hk')+code;
-  const url='https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+tag+',day,,,'+days+',qfq';
-  const r=await fetch(url);const d=await r.json();
-  const raw=(d.data||{})[tag]||{};
-  const day=raw.day||raw.qfqday||[];
+  const tag=(pfx==='1'?'sh':'sz')+code;
+  const r=await fetch('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+tag+',day,,,'+days+',qfq');
+  const d=await r.json();const raw=(d.data||{})[tag]||{};const day=raw.day||raw.qfqday||[];
   return day.slice(-days).map(x=>({date:x[0],open:parseFloat(x[1]),close:parseFloat(x[2]),high:parseFloat(x[3]),low:parseFloat(x[4]),volume:parseFloat(x[5])}));
 }
 
 // ============================================================
-// 计算逻辑
+// 计算
 // ============================================================
-function calcMA(klines,period){
-  if(klines.length<period) return 0;
-  return klines.slice(-period).reduce((s,k)=>s+k.close,0)/period;
-}
-function analyzeMainForce(klines,q){
-  if(klines.length<5) return {signal:'NEUTRAL',sig_label:'⚪ 数据不足',confidence:0,reasons:['K线不足5日']};
-  const price=q.price,pct=q.pct_chg||0,outer=q.outer_ratio||50;
-  const histVols=klines.slice(0,-1).map(k=>k.volume);
-  if(histVols.length===0) histVols.push(klines[0].volume);
-  const n20=Math.min(20,histVols.length);
-  const avgVol20=histVols.slice(-n20).reduce((a,b)=>a+b,0)/n20;
-  const vr=q.vol_ratio||0;
-  const volRatio=vr>0?vr:(q.volume/avgVol20);
-  const recent3=histVols.slice(-3),earlier3=histVols.slice(-6,-3);
-  const volTrend=earlier3.length&&earlier3.reduce((a,b)=>a+b,0)>0?(recent3.reduce((a,b)=>a+b,0)/3)/(earlier3.reduce((a,b)=>a+b,0)/3):1;
-  const closes=klines.map(k=>k.close);
-  const ma5=calcMA(klines,5),ma20=calcMA(klines,20);
-  const priceTrend3d=closes.length>=4?(closes[closes.length-1]-closes[closes.length-4])/closes[closes.length-4]*100:0;
-  let score=0,reasons=[];
-  if(volRatio>2&&pct>1&&price>ma20){score+=30;reasons.push('放量突破(量比'+volRatio.toFixed(1)+'倍)')}
-  else if(volRatio>1.5&&pct>0&&price>ma20){score+=18;reasons.push('放量上涨')}
-  if(volTrend>1.3&&priceTrend3d>1){score+=22;reasons.push('连续放量上攻')}
-  else if(volTrend>1.1&&priceTrend3d>0){score+=10;reasons.push('量能温和放大')}
-  if(volRatio>1.5&&outer>=58&&pct>0){score+=16;reasons.push('量价齐升(外盘'+outer.toFixed(0)+'%)')}
-  if(outer>=65&&volRatio>0.8){score+=10;reasons.push('买盘强势')}
-  if(volRatio>1.5&&pct<-2){score-=28;reasons.push('放量下跌')}
-  else if(volRatio>1.2&&pct<-1){score-=16;reasons.push('放量回调')}
-  if(price>ma20&&volTrend<0.7&&pct>0){score-=22;reasons.push('量价背离(高位缩量)')}
-  if(volRatio>2&&Math.abs(pct)<0.5){score-=18;reasons.push('放量滞涨')}
-  if(outer<35&&volRatio>0.8){score-=16;reasons.push('卖压沉重')}
-  if(volTrend<0.7&&priceTrend3d<-2){score-=12;reasons.push('缩量阴跌')}
-  if(volRatio<0.5&&Math.abs(pct)<1){reasons.push('缩量横盘(疑似洗盘)');score+=6}
-  let sig='NEUTRAL',sig_label='⚪ 暂无信号';
-  if(score>=30){sig='IN';sig_label='🟢 主力进场'}
-  else if(score>=15){sig='IN_WEAK';sig_label='🟡 疑似进场'}
-  else if(score<=-25){sig='OUT';sig_label='🔴 主力出逃'}
-  else if(score<=-10){sig='OUT_WEAK';sig_label='🟠 疑似出逃'}
-  const conf=Math.min(92,Math.max(8,50+Math.min(Math.abs(score),40)*(score>0?1:-1)));
-  if(!reasons.length) reasons.push('量价平稳');
-  return {signal:sig,sig_label,confidence:Math.round(conf),reasons,vol_ratio:Math.round(volRatio*10)/10,vol_trend:Math.round(volTrend*100)/100};
-}
-
-// ============================================================
-// 4 状态徽章
-// ============================================================
-function getBadge(q){
-  const outer=q.outer_ratio||50,pct=q.pct_chg||0;
-  if(outer>=55) return pct>0?{html:'🟢 真涨·持有',color:'#FF453A'}:{html:'⚠️ 诱多·减仓',color:'#FF9F0A'};
-  return pct>0?{html:'🔍 洗盘·观望',color:'#FFD60A'}:{html:'🔴 真跌·卖出',color:'#30D158'};
-}
-
-// ============================================================
-// 深度分析 (简化版，纯前端)
-// ============================================================
+function calcMA(klines,p){if(klines.length<p)return 0;return klines.slice(-p).reduce((s,k)=>s+k.close,0)/p;}
+function getBadge(q){const o=q.outer_ratio||50,p=q.pct_chg||0;if(o>=55)return p>0?{html:'🟢 真涨·持有',color:'#FF453A'}:{html:'⚠️ 诱多·减仓',color:'#FF9F0A'};return p>0?{html:'🔍 洗盘·观望',color:'#FFD60A'}:{html:'🔴 真跌·卖出',color:'#30D158'};}
 function deepAnalyze(klines,q,cost){
   if(klines.length<20) return {verdict_label:'⚪ 数据不足',action:'',pos_info:'',entry_price:0,exit_price:0,stop_loss:0,timing:'',signals:[],risks:[],ma5:0,ma20:0,ma60:0,conf:0};
-  const price=q.price,closes=klines.map(k=>k.close);
-  const highs=klines.map(k=>k.high),lows=klines.map(k=>k.low);
+  const price=q.price,closes=klines.map(k=>k.close),highs=klines.map(k=>k.high),lows=klines.map(k=>k.low);
   const ma5=calcMA(klines,5),ma10=calcMA(klines,10),ma20=calcMA(klines,20),ma60=calcMA(klines,Math.min(60,klines.length));
   const trendUp=ma5>ma10&&ma10>ma20,trendDown=ma5<ma10&&ma10<ma20;
   const high20=Math.max(...highs.slice(-20)),low20=Math.min(...lows.slice(-20));
@@ -316,206 +265,105 @@ function deepAnalyze(klines,q,cost){
   else if(pos60>80){score-=8;risks.push('⚠️ 处于60日高位区域')}
   if(volTrend10>1.3){score+=8;signals.push('✅ 近10日放量趋势')}
   else if(volTrend10<0.6){score-=5;risks.push('⚠️ 近10日缩量')}
-  if(!signals.length) signals.push('无明显买入信号');
-  if(!risks.length) risks.push('无明显风险信号');
-
+  if(!signals.length) signals.push('无明显信号');
+  if(!risks.length) risks.push('无明显风险');
   const hasPos=!!(cost&&cost.cost&&cost.shares);
   let verdict_label='',action='',pos_info='',exit_price=0,stop_loss=0,verdict_color='#FFD60A';
   if(hasPos){
-    const cv=cost.cost,sv=cost.shares;
-    const pnlPct=(price-cv)/cv*100;
-    const sellTarget=cv*1.05;
+    const cv=cost.cost,sv=cost.shares;const pnlPct=(price-cv)/cv*100;const sellTarget=cv*1.05;
     pos_info='成本¥'+cv.toFixed(2)+' · '+sv+'股 · 盈亏'+(Math.abs(pnlPct)<0.05?'持平':(pnlPct>=0?'+':'')+pnlPct.toFixed(1)+'%')+' · 5%卖点¥'+sellTarget.toFixed(2);
-    exit_price=sellTarget;
-    const rawStop=low20<price*0.98?low20:price*0.95;
-    stop_loss=Math.min(rawStop,cv*0.92,price*0.95);
-
+    exit_price=sellTarget;const rawStop=low20<price*0.98?low20:price*0.95;stop_loss=Math.min(rawStop,cv*0.92,price*0.95);
     if(pnlPct>=5){verdict_label='🎯 已达目标';verdict_color='#FF453A';action='已盈利'+pnlPct.toFixed(1)+'%，超5%目标，建议卖出'}
-    else if(pnlPct>=0&&score>=18){verdict_label='🟢 持有等涨';verdict_color='#FF453A';action='微盈，技术面偏多，持有到¥'+sellTarget.toFixed(2)}
-    else if(pnlPct>=0&&score<=-10){verdict_label='🟡 微盈·警惕';verdict_color='#FF9F0A';action='微盈但技术面走弱，可先锁利'}
-    else if(pnlPct>=0){verdict_label='🟡 微盈·观望';verdict_color='#FFD60A';action='微盈，趋势不明，持有观察'}
-    else if(pnlPct>=-5&&score>=18){verdict_label='🟢 持有等反弹';verdict_color='#FF453A';action='小亏，技术面偏多，继续持有'}
-    else if(pnlPct>=-5&&score<=-10){verdict_label='🟠 小亏·警惕';verdict_color='#FF9F0A';action='小亏但技术面恶化，建议反弹减仓'}
-    else if(pnlPct>=-5){verdict_label='🟡 小亏·观望';verdict_color='#FFD60A';action='小亏，耐心持有等待反弹'}
-    else if(score>=18){verdict_label='🟢 等反弹·向好';verdict_color='#FF453A';action='浮亏但技术面转好，坚持持有'}
-    else if(score<=-10){verdict_label='🔴 深套·危险';verdict_color='#FF453A';action='浮亏且技术面恶化，需警惕'}
-    else{verdict_label='🟡 深套·等待';verdict_color='#FFD60A';action='浮亏，耐心等反弹不割肉'}
-    let timing='';
-    if(pnlPct>=5) timing='已达标，建议分批卖出锁利';
-    else if(score>=18) timing='趋势向好，持有至¥'+sellTarget.toFixed(2)+'可卖出';
-    else if(score<=-10) timing='技术面偏空，反弹减仓，止损¥'+stop_loss.toFixed(2);
-    else timing='方向不明，持有等待，底线¥'+stop_loss.toFixed(2);
-    return {verdict_label,verdict_color,action,pos_info,entry_price:0,exit_price,stop_loss,timing,signals:signals.slice(0,4),risks:risks.slice(0,3),ma5:Math.round(ma5*100)/100,ma20:Math.round(ma20*100)/100,ma60:Math.round(ma60*100)/100,conf:Math.round(50+Math.min(Math.abs(score),40)),hasPos:true,dist_to_target:Math.round((sellTarget-price)/price*1000)/10};
+    else if(pnlPct>=0&&score>=18){verdict_label='🟢 持有等涨';verdict_color='#FF453A';action='微盈，持有到¥'+sellTarget.toFixed(2)}
+    else if(pnlPct>=0&&score<=-10){verdict_label='🟡 微盈·警惕';verdict_color='#FF9F0A';action='微盈但技术面走弱'}
+    else if(pnlPct>=0){verdict_label='🟡 微盈·观望';verdict_color='#FFD60A';action='趋势不明，持有观察'}
+    else if(pnlPct>=-5&&score>=18){verdict_label='🟢 持有等反弹';verdict_color='#FF453A';action='小亏但技术面偏多，持有'}
+    else if(pnlPct>=-5&&score<=-10){verdict_label='🟠 小亏·警惕';verdict_color='#FF9F0A';action='小亏且技术面恶化'}
+    else if(pnlPct>=-5){verdict_label='🟡 小亏·观望';verdict_color='#FFD60A';action='耐心持有等反弹'}
+    else if(score>=18){verdict_label='🟢 等反弹·向好';verdict_color='#FF453A';action='浮亏但技术面转好'}
+    else if(score<=-10){verdict_label='🔴 深套·危险';verdict_color='#FF453A';action='浮亏且技术面恶化'}
+    else{verdict_label='🟡 深套·等待';verdict_color='#FFD60A';action='耐心等反弹不割肉'}
+    let t='';if(pnlPct>=5)t='已达标，建议分批卖出锁利';
+    else if(score>=18)t='持有至¥'+sellTarget.toFixed(2)+'卖出';
+    else if(score<=-10)t='反弹减仓，止损¥'+stop_loss.toFixed(2);
+    else t='持有等待，底线¥'+stop_loss.toFixed(2);
+    return {verdict_label,verdict_color,action,pos_info,entry_price:0,exit_price,stop_loss,timing:t,signals:signals.slice(0,4),risks:risks.slice(0,3),ma5:Math.round(ma5*100)/100,ma20:Math.round(ma20*100)/100,ma60:Math.round(ma60*100)/100,conf:Math.round(50+Math.min(Math.abs(score),40)),hasPos:true,dist_to_target:Math.round((sellTarget-price)/price*1000)/10};
   }
-  const entry=price>ma20?ma20:low20;
-  const exit=price*1.06;
-  const stop=Math.min(low20,price*0.93);
-  return {verdict_label:score>=18?'🟢 可建仓':(score<=-10?'🔴 不建议入场':'🟡 观望'),verdict_color:score>=18?'#FF453A':(score<=-10?'#30D158':'#FFD60A'),action:score>=18?'技术面偏多，可建仓':(score<=-10?'暂不建议入场':'等信号明确'),pos_info:'暂无持仓',entry_price:Math.round(entry*100)/100,exit_price:Math.round(exit*100)/100,stop_loss:Math.round(stop*100)/100,timing:'建议¥'+entry.toFixed(2)+'附近建仓，目标¥'+exit.toFixed(2),signals:signals.slice(0,4),risks:risks.slice(0,3),ma5:Math.round(ma5*100)/100,ma20:Math.round(ma20*100)/100,ma60:Math.round(ma60*100)/100,conf:Math.round(50+Math.min(Math.abs(score),40)),hasPos:false,dist_to_target:0};
+  const entry=price>ma20?ma20:low20,exit=price*1.06,stop=Math.min(low20,price*0.93);
+  return {verdict_label:score>=18?'🟢 可建仓':(score<=-10?'🔴 不建议入场':'🟡 观望'),verdict_color:score>=18?'#FF453A':(score<=-10?'#30D158':'#FFD60A'),action:score>=18?'可建仓':(score<=-10?'不建议入场':'等信号'),pos_info:'暂无持仓',entry_price:Math.round(entry*100)/100,exit_price:Math.round(exit*100)/100,stop_loss:Math.round(stop*100)/100,timing:'建议¥'+entry.toFixed(2)+'附近建仓',signals:signals.slice(0,4),risks:risks.slice(0,3),ma5:Math.round(ma5*100)/100,ma20:Math.round(ma20*100)/100,ma60:Math.round(ma60*100)/100,conf:Math.round(50+Math.min(Math.abs(score),40)),hasPos:false,dist_to_target:0};
 }
 
 // ============================================================
-// UI 渲染
+// UI
 // ============================================================
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',1500);}
-
-async function loadApp(){
-  await refreshAll();
-  setInterval(refreshAll,10000);
-}
+async function loadApp(){await refreshAll();setInterval(refreshAll,10000);}
 async function refreshAll(){
-  const holdings=HOLDINGS();
-  const codes=holdings.map(h=>({code:h.code,pfx:h.pfx}));
-  if(!codes.length) return;
-  try{
-    pricesCache=await fetchQuotes(codes);
-    renderTable(holdings);
-    renderCards(holdings);
-  }catch(e){console.error(e)}
+  const h=HOLDINGS();if(!h.length) return;
+  try{pricesCache=await fetchQuotes(h);renderTable(h);renderCards(h);}catch(e){console.error(e)}
 }
 function renderTable(holdings){
-  let totalCost=0,totalPnl=0,dayPnl=0;
-  let rows='';
+  let tc=0,tp=0,dp=0,rows='';
   holdings.forEach(h=>{
-    const q=pricesCache[h.code];
-    if(!q) return;
-    const cost=h.cost||0,shares=h.shares||0;
-    const pnl=(q.price-cost)*shares;
-    const pnlPct=cost>0?(q.price-cost)/cost*100:0;
-    const dayVal=(q.price-q.pre_close)*shares;
-    const dayPct=q.pre_close>0?(q.price-q.pre_close)/q.pre_close*100:0;
-    totalCost+=cost*shares;totalPnl+=pnl;dayPnl+=dayVal;
-    const pc=pnl>=0?'c-red':'c-green',dc=dayVal>=0?'c-red':'c-green';
-    const ps=pnl>=0?'+':'',ds=dayVal>=0?'+':'';
-    const pcost=cost>0?cost.toFixed(3):'—';
-    rows+=`<tr onclick="openDetail('${h.code}','${h.pfx}')" style="cursor:pointer">
-      <td>${h.name}</td><td class="tbl-cost">${pcost}</td>
-      <td class="tbl-price">${q.price.toFixed(3)}</td>
-      <td class="${dc}">${ds}${dayVal.toFixed(2)}</td>
-      <td class="${pc}">${ps}${pnl.toFixed(2)}</td>
-      <td class="${dc}">${ds}${dayPct.toFixed(2)}%</td>
-      <td class="${pc}">${ps}${pnlPct.toFixed(2)}%</td></tr>`;
+    const q=pricesCache[h.code];if(!q) return;
+    const cost=h.cost||0,sh=h.shares||0;
+    const pnl=(q.price-cost)*sh,pnlPct=cost>0?(q.price-cost)/cost*100:0;
+    const dv=(q.price-q.pre_close)*sh,dPct=q.pre_close>0?(q.price-q.pre_close)/q.pre_close*100:0;
+    tc+=cost*sh;tp+=pnl;dp+=dv;
+    const pc=pnl>=0?'c-red':'c-green',dc=dv>=0?'c-red':'c-green';
+    rows+=`<tr onclick="openDetail('${h.code}','${h.pfx}')"><td>${h.name}</td><td class="tbl-cost">${cost>0?cost.toFixed(3):'—'}</td><td class="tbl-price">${q.price.toFixed(3)}</td><td class="${dc}">${dv>=0?'+':''}${dv.toFixed(2)}</td><td class="${pc}">${pnl>=0?'+':''}${pnl.toFixed(2)}</td><td class="${dc}">${dv>=0?'+':''}${dPct.toFixed(2)}%</td><td class="${pc}">${pnl>=0?'+':''}${pnlPct.toFixed(2)}%</td></tr>`;
   });
   document.getElementById('table-body').innerHTML=rows||'<tr><td colspan="7" style="color:#636366;padding:20px">暂无数据</td></tr>';
-  const tp=totalPnl>=0?'c-red':'c-green',ts=totalPnl>=0?'+':'';
-  document.getElementById('total-bar').innerHTML='总成本 ¥'+totalCost.toFixed(2)+' | 总盈亏 <span class="'+tp+'">'+ts+totalPnl.toFixed(2)+'</span> | 当日 <span class="'+(dayPnl>=0?'c-red':'c-green')+'">'+(dayPnl>=0?'+':'')+dayPnl.toFixed(2)+'</span>';
+  const tc2=tp>=0?'c-red':'c-green';
+  document.getElementById('total-bar').innerHTML='总成本 ¥'+tc.toFixed(2)+' | 总盈亏 <span class="'+tc2+'">'+(tp>=0?'+':'')+tp.toFixed(2)+'</span> | 当日 <span class="'+(dp>=0?'c-red':'c-green')+'">'+(dp>=0?'+':'')+dp.toFixed(2)+'</span>';
 }
 function renderCards(holdings){
   let html='';
   holdings.forEach(h=>{
-    const q=pricesCache[h.code];
-    if(!q) return;
-    const badge=getBadge(q);
-    const cost=h.cost||0,shares=h.shares||0;
-    const pnl=(q.price-cost)*shares,pnlPct=cost>0?(q.price-cost)/cost*100:0;
-    const dayVal=(q.price-q.pre_close)*shares,dayPct=q.pre_close>0?(q.price-q.pre_close)/q.pre_close*100:0;
-    const pc=pnl>=0?'#FF453A':'#30D158',dc=dayVal>=0?'#FF453A':'#30D158';
-    const ps=pnl>=0?'+':'',ds=dayVal>=0?'+':'';
+    const q=pricesCache[h.code];if(!q) return;
+    const badge=getBadge(q),cost=h.cost||0,sh=h.shares||0;
+    const pnl=(q.price-cost)*sh,pnlPct=cost>0?(q.price-cost)/cost*100:0;
+    const dv=(q.price-q.pre_close)*sh,dPct=q.pre_close>0?(q.price-q.pre_close)/q.pre_close*100:0;
+    const pc=pnl>=0?'#FF453A':'#30D158',dc=dv>=0?'#FF453A':'#30D158';
     const pct=q.pct_chg||0;
     html+=`<div class="card" onclick="openDetail('${h.code}','${h.pfx}')">
   <div class="card-top"><span class="card-name">${q.name||h.name}</span><span class="card-code">${h.code}</span><span class="card-badge" style="color:${badge.color}">${badge.html}</span></div>
   <div class="card-price-row"><span class="card-price">${q.price.toFixed(2)}</span><span class="card-chg" style="color:${pct>=0?'#FF453A':'#30D158'}">${pct>=0?'↑':'↓'}${pct.toFixed(2)}%</span></div>
-  <div class="cost-row" onclick="event.stopPropagation()">
-    <span class="clabel">成本</span><input type="text" inputmode="decimal" value="${cost||''}" onchange="updateCost('${h.code}',this.value,'cost')" placeholder="价">
-    <span class="clabel">股数</span><input type="text" inputmode="numeric" value="${shares||''}" onchange="updateCost('${h.code}',this.value,'shares')" placeholder="量">
-  </div>
-  <div class="card-row"><span class="card-row-label">持仓盈亏</span><span class="card-row-val" style="color:${pc}">${ps}${pnl.toFixed(2)} (${ps}${pnlPct.toFixed(2)}%)</span></div>
-  <div class="card-row"><span class="card-row-label">当日盈亏</span><span class="card-row-val" style="color:${dc}">${ds}${dayVal.toFixed(2)} (${ds}${dayPct.toFixed(2)}%)</span></div>
-  <div class="card-bar-row">
-    <span class="card-bar-label" style="color:#FF453A">涨</span>
-    <div class="card-bar"><div class="card-bar-fill" style="width:${Math.min(pct>0?50+pct*2:50,95)}%;background:#FF453A"></div></div>
-    <span class="card-bar-label" style="color:#30D158;text-align:right">跌</span>
-  </div>
+  <div class="cost-row" onclick="event.stopPropagation()"><span class="clabel">成本</span><input type="text" inputmode="decimal" value="${cost||''}" onchange="updateCost('${h.code}',this.value,'cost')" placeholder="价"><span class="clabel">股数</span><input type="text" inputmode="numeric" value="${sh||''}" onchange="updateCost('${h.code}',this.value,'shares')" placeholder="量"></div>
+  <div class="card-row"><span class="card-row-label">持仓盈亏</span><span class="card-row-val" style="color:${pc}">${pnl>=0?'+':''}${pnl.toFixed(2)} (${pnl>=0?'+':''}${pnlPct.toFixed(2)}%)</span></div>
+  <div class="card-row"><span class="card-row-label">当日盈亏</span><span class="card-row-val" style="color:${dc}">${dv>=0?'+':''}${dv.toFixed(2)} (${dv>=0?'+':''}${dPct.toFixed(2)}%)</span></div>
+  <div class="card-bar-row"><span class="card-bar-label" style="color:#FF453A">涨</span><div class="card-bar"><div class="card-bar-fill" style="width:${Math.min(pct>0?50+pct*2:50,95)}%;background:#FF453A"></div></div><span class="card-bar-label" style="color:#30D158;text-align:right">跌</span></div>
   <div class="card-row"><span class="card-row-label">量比</span><span class="card-row-val">${(q.vol_ratio||0).toFixed(1)}</span></div>
   <div class="card-row"><span class="card-row-label">换手</span><span class="card-row-val">${(q.turnover||0).toFixed(1)}%</span></div>
 </div>`;
-  });
-  document.getElementById('cards').innerHTML=html;
+  });document.getElementById('cards').innerHTML=html;
 }
-function updateCost(code,val,field){
-  const h=HOLDINGS();
-  const item=h.find(x=>x.code===code);
-  if(!item) return;
-  item[field]=field==='shares'?parseInt(val)||0:parseFloat(val)||0;
-  saveHoldings(h);
-  refreshAll();
-}
+function updateCost(code,val,field){const h=HOLDINGS();const it=h.find(x=>x.code===code);if(!it)return;it[field]=field==='shares'?parseInt(val)||0:parseFloat(val)||0;saveHoldings(h);refreshAll();}
 async function addStock(){
-  const code=document.getElementById('add-code').value.trim();
-  if(!code) return;
+  const code=document.getElementById('add-code').value.trim();if(!code)return;
   const pfx=code.startsWith('6')||code.startsWith('5')||code.startsWith('9')?'1':'0';
-  try{
-    const q=await fetchQuotes([{code,pfx}]);
-    const qd=q[code];
-    if(!qd) return toast('找不到该股票');
-    const h=HOLDINGS();
-    if(h.find(x=>x.code===code)) return toast('已存在');
-    h.push({code,pfx,name:qd.name,cost:0,shares:0});
-    saveHoldings(h);
-    document.getElementById('add-code').value='';
-    refreshAll();
-    toast('✅ 已添加 '+qd.name);
-  }catch(e){toast('添加失败')}
+  try{const q=await fetchQuotes([{code,pfx}]);const qd=q[code];if(!qd)return toast('找不到该股票');const h=HOLDINGS();if(h.find(x=>x.code===code))return toast('已存在');h.push({code,pfx,name:qd.name,cost:0,shares:0});saveHoldings(h);document.getElementById('add-code').value='';refreshAll();toast('✅ 已添加 '+qd.name);}catch(e){toast('添加失败')}
 }
-function switchCat(cat){
-  currentCat=cat;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tabs').querySelectorAll('.tab').forEach(t=>{if(t.textContent===cat)t.classList.add('active')});
-  refreshAll();
-}
+function switchCat(cat){currentCat=cat;document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));refreshAll();}
 async function openDetail(code,pfx){
-  document.getElementById('app').style.display='none';
-  document.getElementById('detail').style.display='block';
+  document.getElementById('app').style.display='none';document.getElementById('detail').style.display='block';
   document.getElementById('dcode').textContent=code;
-  try{
-    const q=await fetchQuotes([{code,pfx}]);
-    const qd=q[code];
-    if(!qd) return;
+  try{const q=await fetchQuotes([{code,pfx}]);const qd=q[code];if(!qd)return;
     document.getElementById('dname').textContent=qd.name;
     document.getElementById('dprice').textContent='¥'+qd.price.toFixed(2);
-    const pct=qd.pct_chg||0;
-    document.getElementById('dchg').innerHTML='<span style="color:'+(pct>=0?'#FF453A':'#30D158')+'">'+(pct>=0?'↑':'↓')+pct.toFixed(2)+'%</span>';
+    const pct=qd.pct_chg||0;document.getElementById('dchg').innerHTML='<span style="color:'+(pct>=0?'#FF453A':'#30D158')+'">'+(pct>=0?'↑':'↓')+pct.toFixed(2)+'%</span>';
     const klines=await fetchKlines(code,pfx,60);
     const h=HOLDINGS().find(x=>x.code===code);
     const da=deepAnalyze(klines,qd,h);
     const si=da.signals.map(s=>'<div class="da-item">'+s+'</div>').join('');
     const ri=da.risks.map(r=>'<div class="da-item da-risk">'+r+'</div>').join('');
     const posH=da.hasPos?`<div class="da-pos" style="color:${da.verdict_color}">${da.pos_info}</div>`:'';
-    const priceCol=da.hasPos
-      ?`<div class="da-price-row"><span class="da-label">5%卖点</span><span class="da-val" style="color:#FF453A">¥${da.exit_price.toFixed(2)}</span></div>
-        <div class="da-price-row"><span class="da-label">距目标</span><span class="da-val" style="color:#FF9F0A">${(da.dist_to_target||0)>=0?'+':''}${(da.dist_to_target||0).toFixed(1)}%</span></div>
-        <div class="da-price-row"><span class="da-label">止损底线</span><span class="da-val" style="color:#30D158">¥${da.stop_loss.toFixed(2)}</span></div>`
-      :`<div class="da-price-row"><span class="da-label">买入价</span><span class="da-val" style="color:#FF453A">¥${da.entry_price.toFixed(2)}</span></div>
-        <div class="da-price-row"><span class="da-label">目标价</span><span class="da-val" style="color:#FF9F0A">¥${da.exit_price.toFixed(2)}</span></div>
-        <div class="da-price-row"><span class="da-label">止损价</span><span class="da-val" style="color:#30D158">¥${da.stop_loss.toFixed(2)}</span></div>`;
-    document.getElementById('da-panel').innerHTML=`
-<div class="da-header"><span class="da-title">📊 AI 深度分析</span><span class="da-confidence" style="color:${da.verdict_color}">置信度 ${da.conf}%</span></div>
-<div class="da-verdict" style="color:${da.verdict_color}">${da.verdict_label}</div>
-<div class="da-action">${da.action}</div>
-${posH}
-<div class="da-grid">
-  <div class="da-col">${priceCol}</div>
-  <div class="da-col">
-    <div class="da-price-row"><span class="da-label">MA5</span><span class="da-val" style="color:#AEAEB2">${da.ma5.toFixed(2)}</span></div>
-    <div class="da-price-row"><span class="da-label">MA20</span><span class="da-val" style="color:#AEAEB2">${da.ma20.toFixed(2)}</span></div>
-    <div class="da-price-row"><span class="da-label">MA60</span><span class="da-val" style="color:#AEAEB2">${da.ma60.toFixed(2)}</span></div>
-  </div>
-</div>
-<div class="da-timing">⏱ ${da.timing}</div>
-<div class="da-signals-title">📈 买入信号</div><div class="da-signals">${si||'<div class="da-item">—</div>'}</div>
-<div class="da-signals-title da-risks-title">⚠️ 风险提示</div><div class="da-signals">${ri||'<div class="da-item">—</div>'}</div>`;
+    const priceCol=da.hasPos?`<div class="da-price-row"><span class="da-label">5%卖点</span><span class="da-val" style="color:#FF453A">¥${da.exit_price.toFixed(2)}</span></div><div class="da-price-row"><span class="da-label">距目标</span><span class="da-val" style="color:#FF9F0A">${(da.dist_to_target||0)>=0?'+':''}${(da.dist_to_target||0).toFixed(1)}%</span></div><div class="da-price-row"><span class="da-label">止损底线</span><span class="da-val" style="color:#30D158">¥${da.stop_loss.toFixed(2)}</span></div>`:`<div class="da-price-row"><span class="da-label">买入价</span><span class="da-val" style="color:#FF453A">¥${da.entry_price.toFixed(2)}</span></div><div class="da-price-row"><span class="da-label">目标价</span><span class="da-val" style="color:#FF9F0A">¥${da.exit_price.toFixed(2)}</span></div><div class="da-price-row"><span class="da-label">止损价</span><span class="da-val" style="color:#30D158">¥${da.stop_loss.toFixed(2)}</span></div>`;
+    document.getElementById('da-panel').innerHTML=`<div class="da-header"><span class="da-title">📊 AI 深度分析</span><span class="da-confidence" style="color:${da.verdict_color}">置信度 ${da.conf}%</span></div><div class="da-verdict" style="color:${da.verdict_color}">${da.verdict_label}</div><div class="da-action">${da.action}</div>${posH}<div class="da-grid"><div class="da-col">${priceCol}</div><div class="da-col"><div class="da-price-row"><span class="da-label">MA5</span><span class="da-val" style="color:#AEAEB2">${da.ma5.toFixed(2)}</span></div><div class="da-price-row"><span class="da-label">MA20</span><span class="da-val" style="color:#AEAEB2">${da.ma20.toFixed(2)}</span></div><div class="da-price-row"><span class="da-label">MA60</span><span class="da-val" style="color:#AEAEB2">${da.ma60.toFixed(2)}</span></div></div></div><div class="da-timing">⏱ ${da.timing}</div><div class="da-signals-title">📈 买入信号</div><div class="da-signals">${si||'<div class="da-item">—</div>'}</div><div class="da-signals-title da-risks-title">⚠️ 风险提示</div><div class="da-signals">${ri||'<div class="da-item">—</div>'}</div>`;
   }catch(e){console.error(e)}
 }
-function closeDetail(){
-  document.getElementById('detail').style.display='none';
-  document.getElementById('app').style.display='block';
-  refreshAll();
-}
-
-// 初始加载
-setTimeout(()=>{
-  const u=localStorage.getItem('dm_last_user');
-  if(u) document.getElementById('login-user').value=u;
-},100);
+function closeDetail(){document.getElementById('detail').style.display='none';document.getElementById('app').style.display='block';refreshAll();}
+setTimeout(()=>{const u=localStorage.getItem('dm_last_user');if(u)document.getElementById('login-user').value=u;},100);
 </script>
 </body>
 </html>
